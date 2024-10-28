@@ -1,4 +1,4 @@
-# VANILLA JS Draggable API
+# VANILLA JS Draggable API Exploration
 * We have a table with multiple rows
 * The rows are draggable
 * Draggable them up and down will change the order of the rows & the data
