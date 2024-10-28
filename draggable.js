@@ -23,6 +23,7 @@ let allTasks = [
 
 const tbodyPosition = document.querySelector("tbody#content").getBoundingClientRect()
 let offsetX = 0
+const nestedPaddingStep = 100;
 
 /**
  * Prepare data at the start of drag.
@@ -224,10 +225,10 @@ function getLevel(clientX1, margin = 50) {
 function handleDrop(event) {
     const allTaskCopy = JSON.parse(JSON.stringify(allTasks))
     try {
-        const level = getLevel(event.clientX-offsetX)
         const droppedId = event.dataTransfer.getData("text/plain");
         const targetId = event.currentTarget.dataset.id;
         const [droppedTask, droppedIndex] = findTask(droppedId, allTasks)
+        const level = getLevel(event.clientX - offsetX + (nestedPaddingStep * (droppedIndex.length - 1)))
         if (droppedId == targetId && level == droppedIndex.length-1) {
             handleDragLeave(event)
             return
@@ -291,7 +292,7 @@ function getRowHtml(item, paddingLeft = 0) {
         <td> ⦾ ${title}</td>
         <td>${hours}</td>
         <td>${costs}</td>
-        ${item.children.map(child => getRowHtml(child, paddingLeft+100)).join("\n")}
+        ${item.children.map(child => getRowHtml(child, paddingLeft+nestedPaddingStep)).join("\n")}
     </tr>
     `;
 }

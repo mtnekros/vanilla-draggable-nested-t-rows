@@ -20,3 +20,6 @@ let allTasks = [
 
 ## Table preview
 ![Table ](./table-preview.png)
+
+# Bug Fixes To do:
+* When task is dropped at level 4 and the target is a level 1 but there are higher level tasks

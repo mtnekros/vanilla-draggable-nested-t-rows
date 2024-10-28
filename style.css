@@ -27,7 +27,7 @@ th {
     color: white;
 }
 
-tbody tr:not(:last-child):hover {
+tbody tr:hover {
     border: 2px dotted white;
 }
 
