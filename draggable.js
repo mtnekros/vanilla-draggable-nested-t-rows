@@ -112,7 +112,7 @@ function findTask(id, tasks) {
  * @param {Task[]} tasks - The list of all tasks.
  * @returns {[Task|null, number[]} task - Returns the removed task or null if not found.
  **/
-function findTaskOneBefore(id, taskList) {
+function findTaskOneBeforeOrUp(id, taskList) {
     let index = taskList.findIndex(task => task.id == id)
     if (index > -1) {
         return [taskList[Math.max(index-1, 0)], [Math.max(index-1, 0)]]
@@ -121,7 +121,7 @@ function findTaskOneBefore(id, taskList) {
         const task = taskList[i]
         const [target, innerIndex] = findTask(id, task.children)
         if (target != null) {
-            return [target, [i, ...innerIndex]]
+            return target.id != id ? [target, [i, ...innerIndex]] : [task, [i]]
         }
     }
     return [null, []]
@@ -164,10 +164,11 @@ function getTasksOfNearestLevel(tasks, level) {
  **/
 function isParentTaskOf(possibleParentTask, childTaskId) {
     for (let task of possibleParentTask.children) {
+        console.log("Task:", task, "ChildTaskId:", childTaskId)
         if (task.id == childTaskId) {
             return true
         }
-        if (task.children.some(task => isParentTaskOf(task, childTaskId))) {
+        if (task.children.some(t => isParentTaskOf(t, childTaskId))) {
             return true
         }
     }
@@ -192,13 +193,17 @@ function updateTaskOrder(tasks, droppedTask, targetTask, targetIndexChain, level
     } else {
         // searching tasks level-1 because the parent is going to one level up than the child task
         const possibleParentTasks = getTasksOfNearestLevel(tasks, level-1);
-        const confirmedParent = (possibleParentTasks.includes(targetTask)) ?
+        let confirmedParent = (possibleParentTasks.includes(targetTask)) ?
             possibleParentTasks.find(task => task == targetTask)
             :
             // adding this condition because target task a nested child of the parent task
             // but we have to find the parent at the correct level & add the droppedTask to
             // the correct level parent which is in possibleParentTasks
             possibleParentTasks.find(task => isParentTaskOf(task, targetTask.id));
+        // if still not found, just use targetTask as the parent
+        if (confirmedParent == null && targetTask != droppedTask) {
+            confirmedParent = targetTask
+        }
         console.log(possibleParentTasks.includes(targetTask), confirmedParent, possibleParentTasks, level-1);
         confirmedParent.children = [
             ...confirmedParent.children.slice(0, targetIndex+1), droppedTask, ...confirmedParent.children.slice(targetIndex+1)
@@ -238,11 +243,12 @@ function handleDrop(event) {
             return
         }
         if (droppedId == targetId) {
-            let [targetTask, targetIndex] = findTaskOneBefore(targetId, allTasks)
+            let [targetTask, targetIndex] = findTaskOneBeforeOrUp(targetId, allTasks)
             removeTask(droppedId, allTasks)
             if (level < (targetIndex.length-1)) {
                 targetIndex = targetIndex.slice(0, level+1)
             }
+            console.log(droppedTask, droppedIndex, droppedId)
             allTasks = updateTaskOrder(allTasks, droppedTask, targetTask, targetIndex, level)
         } else {
             removeTask(droppedId, allTasks)
